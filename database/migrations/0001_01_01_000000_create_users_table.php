@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->unique();
+            $table->string('username')->unique()->nullable();
             $table->string('firstname');
             $table->string('lastname');
             $table->string('phone')->unique();
@@ -22,6 +22,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'suspended', 'banned'])->default('active');
             $table->boolean('is_verified')->default(false);
             $table->string('country');
+            $table->string('verification_token')->nullable();
             $table->unsignedBigInteger('data_balance')->default(0);
             $table->unsignedBigInteger('credit_balance')->default(0);
             $table->unsignedBigInteger('free_minutes')->default(0);

@@ -12,8 +12,8 @@ use App\Http\Middleware\VerifyPaypalWebhook;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::patch('/verify-email', [AuthController::class, 'verifyEmail']);
-    Route::post('/resend-email-token', [AuthController::class, 'resendEmailToken']);
+    Route::patch('/verify-phone', [AuthController::class, 'verifyPhone']);
+    Route::post('/resend-verification-token', [AuthController::class, 'resendVerificationToken']);
     Route::post('/send-reset-token', [AuthController::class, 'sendPasswordResetToken']);
     Route::patch('/reset-password', [AuthController::class, 'resetPassword']);
 });
