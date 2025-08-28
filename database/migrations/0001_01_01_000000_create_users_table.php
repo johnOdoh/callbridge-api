@@ -13,15 +13,18 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('email')->unique();
+            $table->string('username')->unique();
+            $table->string('firstname');
+            $table->string('lastname');
+            $table->string('phone')->unique();
             $table->string('password');
-            $table->unsignedBigInteger('coins')->default(0);
-            $table->boolean('is_verified')->default(false);
+            $table->string('number')->unique()->nullable();
             $table->enum('status', ['active', 'suspended', 'banned'])->default('active');
-            $table->string('email_token')->nullable();
-            $table->string('reset_token')->nullable();
-            $table->boolean('is_social');
-            $table->boolean('was_active')->default(true);
+            $table->boolean('is_verified')->default(false);
+            $table->string('country');
+            $table->unsignedBigInteger('data_balance')->default(0);
+            $table->unsignedBigInteger('credit_balance')->default(0);
+            $table->unsignedBigInteger('free_minutes')->default(0);
             $table->timestamps();
         });
 

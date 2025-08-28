@@ -38,59 +38,60 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'is_verified' => 'boolean',
-            'is_social' => 'boolean',
-            'was_active' => 'boolean'
+            'is_verified' => 'boolean'
         ];
     }
 
-    public function profile()
+    private function isUnique($field, $value)
     {
-        return $this->hasOne(Profile::class);
+        return ! static::where($field, $value)->exists();
     }
 
-    public function reward()
+    public function fullname()
     {
-        return $this->hasOne(Reward::class);
+        return "$this->firstname $this->lastname";
     }
 
-    public function posts()
+    public function generateUsernameAndNumber()
     {
-        return $this->hasMany(Post::class);
+        do {
+            $username = $this->lastname . random_int(100, 999);
+        }
+        while(! $this->isUnique('username', $username));
+        do {
+            $number = random_int(1000000000, 9999999999);
+        }
+        while(! $this->isUnique('number', $number));
+        return ['username' => $username, 'number' => $number];
     }
 
-    public function transactions()
+    public function preference()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasOne(Preference::class);
     }
 
-    public function notifications()
+    public function esim()
     {
-        return $this->hasMany(Notification::class);
+        return $this->hasOne(ESim::class);
+    }
+
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class);
+    }
+
+    public function outgoingCalls()
+    {
+        return $this->hasMany(CallLog::class, 'from');
+    }
+
+    public function incomingCalls()
+    {
+        return $this->hasMany(CallLog::class, 'to');
     }
 
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
-    }
-
-    public function livestreams()
-    {
-        return $this->hasMany(Livestream::class);
-    }
-
-    public function followers()
-    {
-        return $this->belongsToMany(User::class, 'follower_following', 'following_id', 'follower_id')->withTimestamps();
-    }
-
-    public function following()
-    {
-        return $this->belongsToMany(User::class, 'follower_following', 'follower_id', 'following_id')->withTimestamps();
-    }
-
-    public function interests()
-    {
-        return $this->belongsToMany(Interest::class, 'user_interest');
     }
 }
