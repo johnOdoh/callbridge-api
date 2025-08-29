@@ -55,7 +55,7 @@ class User extends Authenticatable
     public function generateUsernameAndNumber()
     {
         do {
-            $username = $this->lastname . random_int(100, 999);
+            $username = strtolower($this->lastname . random_int(0, 999));
         }
         while(! $this->isUnique('username', $username));
         do {
@@ -93,5 +93,23 @@ class User extends Authenticatable
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    // public function referrals()
+    // {
+    //     return $this->belongsToMany(User::class, 'affiliates', 'referrer_id', 'referee_id')
+    //         ->using(Affiliate::class)
+    //         ->withTimestamps()
+    //         ->withPivot('is_completed');
+    // }
+
+    public function referrals()
+    {
+        return $this->hasMany(Affiliate::class, 'referrer_id');
+    }
+
+    public function referredBy()
+    {
+        return $this->hasOne(Affiliate::class, 'referee_id');
     }
 }

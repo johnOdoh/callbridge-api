@@ -26,6 +26,7 @@ return new class extends Migration
             $table->unsignedBigInteger('data_balance')->default(0);
             $table->unsignedBigInteger('credit_balance')->default(0);
             $table->unsignedBigInteger('free_minutes')->default(0);
+            $table->unsignedBigInteger('total_referral_talk_time')->default(0);
             $table->timestamps();
         });
 

@@ -30,13 +30,8 @@ Route::get('payment/stripe/cancel', [PaymentController::class, 'stripePaymentCan
 
 Route::post('paypal/webhooks', [WebhookController::class, 'paypalWebhooks'])->middleware(VerifyPaypalWebhook::class);
 Route::post('stripe/webhooks', [WebhookController::class, 'stripeWebhooks']);
-Route::post('sightengine/video-moderation/callback', function (Request $request) {
-    $data = $request->all();
-    Log::info('Sightengine Video Moderation Callback', $data);
-    return response()->noContent();
-})->name('sightengine.video-moderation.callback');
 
 ROute::group(['middleware' => 'auth:sanctum'], function () {
-
+    Route::get('user/affiliate', [UserController::class, 'affiliate']);
     Route::delete('user/logout', [UserController::class, 'logout']);
 });

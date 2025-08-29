@@ -20,6 +20,7 @@ class AuthController extends Controller
             'phone' => 'required|numeric',
             'country' => 'required|string',
             'password' => 'required|string|min:8',
+            'referrer' => 'nullable|string'
         ]);
         $token = random_int(100000, 999999);
         $user = new User([
@@ -30,8 +31,19 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'verification_token' => $token,
         ]);
-        $user->save();
-        return response()->json(['message' => 'Registration successful'], 201);
+        DB::beginTransaction();
+        try {
+            $user->save();
+            if (!empty($request->referrer)) {
+                $referrer = User::firstWhere('username', strtolower(trim($request->referrer)));
+                if ($referrer) $referrer->referrals()->create(['referee_id' => $user->id]);
+            }
+            DB::commit();
+            return response()->json(['message' => 'Registration successful'], 201);
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Something went wrong'], 500);
+        }
     }
 
     public function login(Request $request)
@@ -63,13 +75,21 @@ class AuthController extends Controller
             $user->username = $data['username'];
             $user->is_verified = true;
             $user->verification_token = null;
+            $referrer = $user->referredBy;
+            // return $referrer;
             DB::beginTransaction();
             try {
+                if ($referrer) {
+                    $referrer->user->increment('total_referral_talk_time', 60*30);
+                    $referrer->user->increment('free_minutes', 60*30);
+                    $referrer->update(['is_completed' => true]);
+                }
                 $user->save();
                 $user->preference()->save(new Preference());
                 DB::commit();
             }catch (\Exception $e) {
                 DB::rollBack();
+                return $e;
                 return response()->json(['message' => 'Something went wrong'], 500);
             }
             $token =  $user->createToken("mobile device")->plainTextToken;
