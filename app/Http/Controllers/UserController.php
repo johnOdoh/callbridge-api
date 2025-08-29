@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
@@ -21,6 +24,36 @@ class UserController extends Controller
                 'joined_at' => $affiliate->created_at->diffForHumans()
             ])
         ]);
+    }
+
+    public function leaderboard(Request $request)
+    {
+        $leaderboard = User::select('users.*', DB::raw('COUNT(affiliates.id) as total_referrals'))
+            ->join('affiliates', 'users.id', '=', 'affiliates.referrer_id')
+            ->groupBy('users.id')
+            ->orderByDesc('total_referrals')
+            ->get();
+        return $leaderboard->map(fn($user) => [
+            'name' => $user->fullname(),
+            'image' => $user->preferences?->image ? asset('storage/' . $user->preferences->image) : null,
+            'referrals' => $user->total_referrals,
+            'talk_time_earned' => formatSeconds($user->total_referral_talk_time)
+        ]);
+    }
+
+    public function updateImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+        $user = $request->user();
+        if ($user->preference->image)
+            File::delete(public_path('storage/'.$user->preference->image));
+        if ($path = $request->file('image')->store('dps', 'public')) {
+            $user->preference()->update(['image' => $path]);
+            return response()->json(['message' => 'Profile image updated successfully']);
+        }
+        return response()->json(['message' => 'Failed to update profile image'], 500);
     }
 
     public function logout(Request $request)

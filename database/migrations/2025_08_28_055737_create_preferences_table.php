@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('display_name')->nullable();
             $table->string('image')->nullable();
+            $table->string('bio')->nullable();
             $table->timestamps();
         });
     }

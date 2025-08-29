@@ -33,5 +33,7 @@ Route::post('stripe/webhooks', [WebhookController::class, 'stripeWebhooks']);
 
 ROute::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('user/affiliate', [UserController::class, 'affiliate']);
+    Route::get('user/leaderboard', [UserController::class, 'leaderboard']);
+    Route::put('user/update-image', [UserController::class, 'updateImage']);
     Route::delete('user/logout', [UserController::class, 'logout']);
 });
