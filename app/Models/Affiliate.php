@@ -15,4 +15,9 @@ class Affiliate extends Model
     {
         return $this->belongsTo(User::class, 'referrer_id');
     }
+
+    public function referee()
+    {
+        return $this->belongsTo(User::class, 'referee_id');
+    }
 }

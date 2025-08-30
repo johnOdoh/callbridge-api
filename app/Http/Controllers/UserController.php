@@ -6,10 +6,27 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
+    public function index(Request $request)
+    {
+        return new UserResource($request->user());
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'display_name' => 'required|string',
+            'bio' => 'nullable|string',
+            'email' => 'nullable|email|unique:preferences,email'
+        ]);
+        $request->user()->preference()->update($request->all());
+        return response()->json(['message' => 'Profile updated successfully']);
+    }
+
     public function affiliate(Request $request)
     {
         $no_invited = $request->user()->referrals->count();
@@ -19,8 +36,8 @@ class UserController extends Controller
             'signed_up' => $signed_up,
             'talk_time_earned' => formatSeconds($request->user()->total_referral_talk_time),
             'referrals' => $request->user()->referrals()->latest()->get()->map(fn($affiliate) => [
-                'name' => $affiliate->user->fullname(),
-                'image' => $affiliate->user->preferences?->image ? asset('storage/' . $affiliate->user->preferences->image) : null,
+                'name' => $affiliate->referee->fullname(),
+                'image' => $affiliate->referee->preference?->image ? asset('storage/' . $affiliate->referee->preference->image) : null,
                 'joined_at' => $affiliate->created_at->diffForHumans()
             ])
         ]);
@@ -35,7 +52,7 @@ class UserController extends Controller
             ->get();
         return $leaderboard->map(fn($user) => [
             'name' => $user->fullname(),
-            'image' => $user->preferences?->image ? asset('storage/' . $user->preferences->image) : null,
+            'image' => $user->preference?->image ? asset('storage/' . $user->preference->image) : null,
             'referrals' => $user->total_referrals,
             'talk_time_earned' => formatSeconds($user->total_referral_talk_time)
         ]);

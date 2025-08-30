@@ -20,7 +20,11 @@ class UserResource extends JsonResource
             'lastname' => $this->lastname,
             'firstname' => $this->firstname,
             'phone' => $this->phone,
-            'callbridge_number' => $this->number
+            'callbridge_number' => $this->number,
+            'image' => $this->preference?->image ? asset('storage/'.$this->preference->image) : null,
+            'display_name' => $this->preference?->display_name,
+            'bio' => $this->preference?->bio,
+            'email' => $this->preference?->email
         ];
     }
 }

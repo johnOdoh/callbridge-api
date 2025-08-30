@@ -32,6 +32,8 @@ Route::post('paypal/webhooks', [WebhookController::class, 'paypalWebhooks'])->mi
 Route::post('stripe/webhooks', [WebhookController::class, 'stripeWebhooks']);
 
 ROute::group(['middleware' => 'auth:sanctum'], function () {
+    Route::get('user', [UserController::class, 'index']);
+    Route::patch('user', [UserController::class, 'update']);
     Route::get('user/affiliate', [UserController::class, 'affiliate']);
     Route::get('user/leaderboard', [UserController::class, 'leaderboard']);
     Route::put('user/update-image', [UserController::class, 'updateImage']);
