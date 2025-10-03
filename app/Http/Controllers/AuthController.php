@@ -8,12 +8,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Services\VerificationService;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // $smsService = new VerificationService();
+        // $app = $smsService->getVerificationApps()[0] ?? $smsService->createVerificationApp();
+        // $message = $smsService->getMessageTemplates($app['applicationId'])[1] ?? $smsService->createMessageTemplate($app['applicationId']);
+        // return $response = $smsService->sendOTP($app['applicationId'], $message['messageId'], '2348133439380');
+        // return $message;
         $request->validate([
             'firstname' => 'required|string',
             'lastname' => 'required|string',
@@ -23,6 +29,7 @@ class AuthController extends Controller
             'referrer' => 'nullable|string'
         ]);
         $token = random_int(100000, 999999);
+
         $user = new User([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
@@ -90,7 +97,7 @@ class AuthController extends Controller
             }catch (\Exception $e) {
                 DB::rollBack();
                 return $e;
-                return response()->json(['message' => 'Something went wrong'], 500);
+                // return response()->json(['message' => 'Something went wrong'], 500);
             }
             $token =  $user->createToken("mobile device")->plainTextToken;
             return response()->json([
