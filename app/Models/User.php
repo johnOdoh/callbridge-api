@@ -90,6 +90,11 @@ class User extends Authenticatable
         return $this->hasMany(CallLog::class, 'to');
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public function tickets()
     {
         return $this->hasMany(Ticket::class);

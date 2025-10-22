@@ -18,6 +18,13 @@ return new class extends Migration
             $table->string('display_name')->nullable();
             $table->string('image')->nullable();
             $table->string('bio')->nullable();
+            $table->string('visibility')->default('Public');
+            $table->boolean('call_alerts')->default(true);
+            $table->boolean('new_messages')->default(true);
+            $table->boolean('subscription_reminders')->default(true);
+            $table->boolean('call_rom_unknown')->default(true);
+            $table->boolean('show_online')->default(true);
+            $table->boolean('share_profile')->default(true);
             $table->timestamps();
         });
     }

@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\Plan;
+use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
@@ -21,7 +24,8 @@ class UserController extends Controller
         $request->validate([
             'display_name' => 'required|string',
             'bio' => 'nullable|string',
-            'email' => 'nullable|email|unique:preferences,email'
+            'email' => 'nullable|email|unique:preferences,email',
+            'visibility' => 'in:Public,Anonymous',
         ]);
         $request->user()->preference()->update($request->all());
         return response()->json(['message' => 'Profile updated successfully']);
@@ -41,6 +45,28 @@ class UserController extends Controller
                 'joined_at' => $affiliate->created_at->diffForHumans()
             ])
         ]);
+    }
+
+    public function subscribe(Request $request, Plan $plan)
+    {
+        $user = $request->user();
+        if ($user->wallet < $plan->amount) return response()->json(['message' => 'Insufficient funds to subscribe'], 400);
+        if ($user->subscription && $user->subscription->is_active) {
+            return response()->json(['message' => 'You already have an active subscription'], 400);
+        }
+        $user->subscription()->create([
+            'plan_id' => $plan->id,
+            'ends_at' => Carbon::now()->addDays($plan->interval)
+        ]);
+        $user->decrement('wallet', $plan->amount);
+        Transaction::create([
+            'user_id' => $user->id,
+            'amount' => $plan->amount,
+            'status' => 'COMPLETED',
+            'type' => 'debit',
+            'description' => "Subscribed to {$plan->name} plan"
+        ]);
+        return response()->json(['message' => 'Subscription successful']);
     }
 
     public function leaderboard(Request $request)

@@ -7,19 +7,33 @@ use App\Models\Transaction;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Plan;
 use Illuminate\Support\Facades\Http;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class PaymentController extends Controller
 {
+    public function getPlans()
+    {
+        $plans = Plan::all();
+        return $plans->map(fn ($plan) => [
+                'id' => $plan->id,
+                'name' => $plan->name,
+                'amount' => $plan->amount,
+                'interval' => $plan->interval,
+                'has_unlimited_data' => $plan->unlimited_data,
+                'has_unlimited_calls' => $plan->unlimited_calls,
+                'is_esim_enabled' => $plan->esim_enabled,
+                'features' => $plan->features
+            ]);
+    }
+
     public function createPaypalPayment(Request $request)
     {
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
-            'coins' => 'required|integer|min:1'
+            'description' => 'required|string'
         ]);
-        $coins = $request->coins;
-        $description = "Purchased $request->coins coins";
         $provider = new PayPalClient();
         $accessToken = $provider->getAccessToken()['access_token'];
 
@@ -40,7 +54,7 @@ class PaymentController extends Controller
                             "currency_code" => "GBP",
                             "value" => $request->amount,
                         ],
-                        "description" => $description,
+                        "description" => $request->description,
                     ]
                 ],
                 "payment_source" => [
@@ -65,8 +79,7 @@ class PaymentController extends Controller
             'amount' => $request->amount,
             'status' => 'PENDING',
             'type' => 'debit',
-            'description' => $description,
-            'coins' => $coins
+            'description' => $request->description
         ]);
         $approvalUrl = collect($response['links'])->where('rel', 'payer-action')->first()['href'];
         return response()->json(['url' => $approvalUrl]);
@@ -98,10 +111,8 @@ class PaymentController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
-            'coins' => 'required|integer|min:1'
+            'description' => 'required|string'
         ]);
-        $coins = $request->coins;
-        $description = "Purchased $request->coins coins";
         $stripe = new StripeClient(env('STRIPE_SECRET'));
 
         // Create a Stripe Checkout session
@@ -112,8 +123,8 @@ class PaymentController extends Controller
                 'price_data' => [
                     'currency' => 'gbp',
                     'product_data' => [
-                        'name' => 'Coin Purchase',
-                        'description' => "Purchase $request->coins ".config('app.name')." coins",
+                        'name' => 'Wallet Funding',
+                        'description' => $request->description,
                     ],
                     'unit_amount' => $request->amount*100, // Amount in cents (20.00 GBP)
                 ],
@@ -133,8 +144,7 @@ class PaymentController extends Controller
             'amount' => $request->amount,
             'status' => 'PENDING',
             'type' => 'debit',
-            'description' => $description,
-            'coins' => $coins
+            'description' => $request->description
         ]);
         return response()->json(['url' => $response['url']]);
     }
@@ -158,14 +168,12 @@ class PaymentController extends Controller
     {
          $request->validate([
             'amount' => 'required|numeric|min:0.01',
-            'coins' => 'required|integer|min:1'
+            'description' => 'required|string'
         ]);
-        $coins = $request->coins;
-        $description = "Purchased $request->coins coins";
         $response = Http::withToken(env('PAYSTACK_SECRET_KEY'))
             ->withHeader('Content-Type', 'application/json')
             ->post('https://api.paystack.co/transaction/initialize', [
-                'email' => $request->user()->email,
+                'email' => $request->user()->preference()->email ?? 'doe@email.com',
                 'amount' => $request->amount*100,
                 'callback_url' => route('payment.paystack.success'),
                 'metadata' => [
@@ -183,8 +191,7 @@ class PaymentController extends Controller
             'amount' => $request->amount,
             'status' => 'PENDING',
             'type' => 'debit',
-            'description' => $description,
-            'coins' => $coins
+            'description' => $request->description
         ]);
         return response()->json(['url' => $response->json()['data']['authorization_url']]);
     }

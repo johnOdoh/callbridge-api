@@ -20,7 +20,6 @@ Route::prefix('auth')->group(function () {
 
 Route::get('payment/paypal/success', [PaymentController::class, 'paypalPaymentSuccess'])->name('payment.paypal.success');
 Route::get('payment/paypal/cancel', [PaymentController::class, 'paypalPaymentCancel'])->name('payment.paypal.cancel');
-Route::post('payment/paypal/payouts', [PaymentController::class, 'paypalPayouts']);
 
 Route::get('payment/paystack/success', [PaymentController::class, 'paystackPaymentSuccess'])->name('payment.paystack.success');
 Route::get('payment/paystack/cancel', [PaymentController::class, 'paystackPaymentCancel'])->name('payment.paystack.cancel');
@@ -32,8 +31,14 @@ Route::post('paypal/webhooks', [WebhookController::class, 'paypalWebhooks'])->mi
 Route::post('stripe/webhooks', [WebhookController::class, 'stripeWebhooks']);
 
 ROute::group(['middleware' => 'auth:sanctum'], function () {
+    Route::get('payment/plans', [PaymentController::class, 'getPlans']);
+    Route::post('payment/paypal/create', [PaymentController::class, 'createPaypalPayment']);
+    Route::post('payment/paystack/create', [PaymentController::class, 'createPaystackPayment']);
+    Route::post('payment/stripe/create', [PaymentController::class, 'createStripePayment']);
+
     Route::get('user', [UserController::class, 'index']);
     Route::patch('user', [UserController::class, 'update']);
+    Route::post('user/subscribe/{plan}', [UserController::class, 'subscribe']);
     Route::get('user/affiliate', [UserController::class, 'affiliate']);
     Route::get('user/leaderboard', [UserController::class, 'leaderboard']);
     Route::put('user/update-image', [UserController::class, 'updateImage']);

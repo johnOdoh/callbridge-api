@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Preference extends Model
 {
     protected $guarded = [];
+    protected $casts = [
+        'call_alerts' => 'boolean',
+        'new_messages' => 'boolean',
+        'subscription_reminders' => 'boolean',
+        'call_rom_unknown' => 'boolean',
+        'show_online' => 'boolean',
+        'share_profile' => 'boolean'
+    ];
 
     public function user()
     {

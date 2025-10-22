@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('lastname');
             $table->string('phone')->unique();
             $table->string('password');
+            $table->decimal('wallet')->default(0);
             $table->string('number')->unique()->nullable();
             $table->enum('status', ['active', 'suspended', 'banned'])->default('active');
             $table->boolean('is_verified')->default(false);
