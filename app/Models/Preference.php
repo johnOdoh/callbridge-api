@@ -11,7 +11,7 @@ class Preference extends Model
         'call_alerts' => 'boolean',
         'new_messages' => 'boolean',
         'subscription_reminders' => 'boolean',
-        'call_rom_unknown' => 'boolean',
+        'call_from_unknown' => 'boolean',
         'show_online' => 'boolean',
         'share_profile' => 'boolean'
     ];

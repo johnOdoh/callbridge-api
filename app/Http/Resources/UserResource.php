@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'firstname' => $this->firstname,
             'wallet' => $this->wallet,
             'phone' => $this->phone,
+            'region' => $this->country,
             'callbridge_number' => $this->number,
             'image' => $this->preference?->image ? asset('storage/'.$this->preference->image) : null,
             'display_name' => $this->preference?->display_name,

@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+use App\Models\Plan;
 use App\Models\User;
+use Twilio\Rest\Client;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Models\Plan;
-use App\Models\Transaction;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
@@ -69,6 +70,33 @@ class UserController extends Controller
         return response()->json(['message' => 'Subscription successful']);
     }
 
+    public function subscription(Request $request)
+    {
+        $subscription = $request->user()->subscription()->where('is_active', true)->first();
+        if (!$subscription) {
+            return response()->json(['has_subscription' => false], 200);
+        }
+        return response()->json([
+            'has_subscription' => true,
+            'plan_name' => $subscription->plan->name,
+            'renews_at' => $subscription->ends_at->format('M d, Y'),
+            'features' => $subscription->plan->features
+        ]);
+    }
+
+    public function settings(Request $request)
+    {
+        $preference = $request->user()->preference;
+        return response()->json([
+            'call_alerts' => $preference->call_alerts,
+            'new_messages' => $preference->new_messages,
+            'subscription_reminders' => $preference->subscription_reminders,
+            'call_from_unknown' => $preference->call_from_unknown,
+            'show_online' => $preference->show_online,
+            'share_profile' => $preference->share_profile
+        ]);
+    }
+
     public function leaderboard(Request $request)
     {
         $leaderboard = User::select('users.*', DB::raw('COUNT(affiliates.id) as total_referrals'))
@@ -97,6 +125,25 @@ class UserController extends Controller
             return response()->json(['message' => 'Profile image updated successfully']);
         }
         return response()->json(['message' => 'Failed to update profile image'], 500);
+    }
+
+    public function call(Request $request)
+    {
+        $request->validate([
+            'to' => 'required|string',
+        ]);
+
+        $twilio = new Client(env('TWILIO_ACCOUNT_SID'), env('TWILIO_AUTH_TOKEN'));
+
+        $call = $twilio->calls->create(
+            $request->to, // PSTN destination number
+            env('TWILIO_PHONE_NUMBER'), // Caller ID (Twilio verified number)
+            [
+                'url' => 'https://handler.twilio.com/twiml/EH968aa390b85459f2308b384936380ef7' // TwiML instructions
+            ]
+        );
+
+        return response()->json($call->sid);
     }
 
     public function logout(Request $request)

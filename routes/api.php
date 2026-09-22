@@ -38,9 +38,12 @@ ROute::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::get('user', [UserController::class, 'index']);
     Route::patch('user', [UserController::class, 'update']);
+    Route::post('user/call', [UserController::class, 'call']);
     Route::post('user/subscribe/{plan}', [UserController::class, 'subscribe']);
     Route::get('user/affiliate', [UserController::class, 'affiliate']);
     Route::get('user/leaderboard', [UserController::class, 'leaderboard']);
+    Route::get('user/subscription', [UserController::class, 'subscription']);
+    Route::get('user/settings', [UserController::class, 'settings']);
     Route::put('user/update-image', [UserController::class, 'updateImage']);
     Route::delete('user/logout', [UserController::class, 'logout']);
 });
